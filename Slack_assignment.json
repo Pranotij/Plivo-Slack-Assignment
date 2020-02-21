@@ -1,0 +1,1711 @@
+{
+	"info": {
+		"_postman_id": "9be0bb0e-b105-4a6a-ae56-d5c96f9b640d",
+		"name": "Slack",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Smoke Testing Cases",
+			"item": [
+				{
+					"name": "Create a new general channnel",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "c523c833-814f-4882-8fa4-24430f7dfb41",
+								"exec": [
+									"var random_number = _.random(1, 500);",
+									"",
+									"var name_of_channel = \"testing\"+random_number;",
+									"",
+									"",
+									"pm.environment.set(\"name_of_channel\", name_of_channel);",
+									"",
+									"//console.log(name_of_channel);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "44dae694-6442-4b5b-bac5-c75cce550043",
+								"exec": [
+									"var json_response = JSON.parse(responseBody);",
+									"",
+									"//Setting name in environment variable",
+									"",
+									"var channel_name = json_response.channel.name;",
+									"pm.environment.set(\"response_channel_name\", channel_name);",
+									"   ",
+									"//Setting id in environment variable ",
+									"var channel_id = json_response.channel.id;",
+									"pm.environment.set(\"response_channel_id\", channel_id);",
+									"",
+									"pm.test(\"Channel Successfully created\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{env}}conversations.create?token={{token}}&name={{name_of_channel}}&pretty=1",
+							"host": [
+								"{{env}}conversations",
+								"create"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "{{token}}"
+								},
+								{
+									"key": "name",
+									"value": "{{name_of_channel}}"
+								},
+								{
+									"key": "pretty",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Join the newly created Channel",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "54c5097d-06d4-4cb3-b8cb-eb0ca9cc1e56",
+								"exec": [
+									"pm.test(\"Succeffuly joined the channel\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{env}}conversations.join?token={{token}}&channel={{response_channel_id}}&pretty=1",
+							"host": [
+								"{{env}}conversations",
+								"join"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "{{token}}"
+								},
+								{
+									"key": "channel",
+									"value": "{{response_channel_id}}"
+								},
+								{
+									"key": "pretty",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Rename the channel",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "c9f89839-a784-4c85-88c4-913194ebe94e",
+								"exec": [
+									"var random_number = _.random(1, 100);",
+									"",
+									"var change_name = \"changechannelname\"+random_number;",
+									"",
+									"",
+									"pm.environment.set(\"change_name\", change_name);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "51d4e862-26bd-4a9b-9117-1d2da94668a8",
+								"exec": [
+									"var json_response = JSON.parse(responseBody); ",
+									"",
+									"var response_renamed_id = json_response.channel.id;",
+									"pm.environment.set(\"renamed_id\", response_renamed_id);",
+									"",
+									"var response_renamed_name = json_response.channel.name;",
+									"",
+									"pm.environment.set(\"renamed_name\", response_renamed_name);",
+									"",
+									"pm.test(\"Successfully renamed\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{env}}conversations.rename?token={{token}}&channel={{response_channel_id}}&name={{change_name}}&pretty=1",
+							"host": [
+								"{{env}}conversations",
+								"rename"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "{{token}}"
+								},
+								{
+									"key": "channel",
+									"value": "{{response_channel_id}}"
+								},
+								{
+									"key": "name",
+									"value": "{{change_name}}"
+								},
+								{
+									"key": "pretty",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List all Channels and Validate if the Channel name has changed successfully",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ed12ca0f-e8e7-4ca3-b1ca-b60fc47b46b7",
+								"exec": [
+									"var from_env_id = pm.environment.get(\"renamed_id\"); ",
+									"var from_env_name = pm.environment.get(\"renamed_name\"); ",
+									"var json_response = JSON.parse(responseBody); ",
+									"",
+									"var len = json_response.channels.length, i=0;",
+									"",
+									"while(i<len)",
+									"{",
+									"    if(json_response.channels[i].id==from_env_id)",
+									"    {",
+									"       ",
+									"     if(json_response.channels[i].name==from_env_name)",
+									"     {",
+									"       pm.test(\"Name is changed to: \" + from_env_name);",
+									"        break;",
+									"     }",
+									"     ",
+									"    }",
+									"   ",
+									"    ",
+									"    i++;",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{env}}channels.list?token={{token}}",
+							"host": [
+								"{{env}}channels",
+								"list"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create a new private channnel",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "c523c833-814f-4882-8fa4-24430f7dfb41",
+								"exec": [
+									"var random_number = _.random(1, 100);",
+									"",
+									"var private_channel_name = \"archiving\"+random_number;",
+									"",
+									"pm.environment.set(\"private_name_for_archiving\", private_channel_name);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "44dae694-6442-4b5b-bac5-c75cce550043",
+								"exec": [
+									"var json_response = JSON.parse(responseBody);",
+									"",
+									"pm.environment.set(\"id_private_channel\", json_response.channel.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{env}}conversations.create?token={{token}}&name={{private_name_for_archiving}}&is_private=1&pretty=1",
+							"host": [
+								"{{env}}conversations",
+								"create"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "{{token}}"
+								},
+								{
+									"key": "name",
+									"value": "{{private_name_for_archiving}}"
+								},
+								{
+									"key": "is_private",
+									"value": "1"
+								},
+								{
+									"key": "pretty",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Archive the Channel",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2321cd03-5f2a-4176-8ac8-c1ad8061c549",
+								"exec": [
+									"pm.test(\"Successfully archived\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{env}}conversations.archive?token={{token}}&channel={{id_private_channel}}&pretty=1",
+							"host": [
+								"{{env}}conversations",
+								"archive"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "{{token}}"
+								},
+								{
+									"key": "channel",
+									"value": "{{id_private_channel}}"
+								},
+								{
+									"key": "pretty",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate if the Channel is archived successfully",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "43bd48d7-45ba-4056-90e9-58b5c1b1d0ee",
+								"exec": [
+									"var json_response = JSON.parse(responseBody);",
+									"",
+									"//Getting name from environment variable",
+									"",
+									"",
+									"",
+									"var archive_channel = pm.environment.get(\"private_name_for_archiving\");",
+									"",
+									"",
+									"var len = json_response.channels.length, i=0;",
+									"var flag =0;",
+									"while(i<len)",
+									"{",
+									"    if(json_response.channels[i].name==archive_channel)",
+									"    {",
+									"       ",
+									"     pm.environment.set(\"archive_channel_id\", json_response.channels[i].id); ",
+									"     flag=1;",
+									"           break;",
+									"    }",
+									"    ",
+									"    i++;",
+									"}",
+									"",
+									"if(flag==1)",
+									"{",
+									" pm.test(\"The channel is archived \", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(json_response.channels[i].is_archived).to.eql(true);",
+									"});",
+									"}",
+									"else",
+									"{",
+									" pm.test(\"The channel is not archived \")   ",
+									"}",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{env}}conversations.list?token={{token}}&exclude_archived=false&types=private_channel&pretty=1",
+							"host": [
+								"{{env}}conversations",
+								"list"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "{{token}}"
+								},
+								{
+									"key": "exclude_archived",
+									"value": "false"
+								},
+								{
+									"key": "types",
+									"value": "private_channel"
+								},
+								{
+									"key": "pretty",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "In this folder,just checking the flow by creating and getting the data from APIs",
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Test Cases",
+			"item": [
+				{
+					"name": "Create New General Channel",
+					"item": [
+						{
+							"name": "Checking if status code is 200",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "c523c833-814f-4882-8fa4-24430f7dfb41",
+										"exec": [
+											"var random_number = _.random(1, 100);",
+											"",
+											"var name_of_channel = \"testing\"+random_number;",
+											"",
+											"",
+											"pm.environment.set(\"name_of_channel\", name_of_channel);",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "44dae694-6442-4b5b-bac5-c75cce550043",
+										"exec": [
+											"",
+											"pm.test(\"Getting status code as 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.create?token={{token}}&name={{name_of_channel}}&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"create"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "name",
+											"value": "{{name_of_channel}}"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Checking if channel is created or not",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "c523c833-814f-4882-8fa4-24430f7dfb41",
+										"exec": [
+											"var random_number = _.random(1, 100);",
+											"",
+											"var name_of_channel = \"testing\"+random_number;",
+											"",
+											"",
+											"pm.environment.set(\"name_of_channel\", name_of_channel);",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "44dae694-6442-4b5b-bac5-c75cce550043",
+										"exec": [
+											"//creating a variable for response body",
+											"",
+											"var json_response = JSON.parse(responseBody); ",
+											"",
+											"//checking that the channel is creating or not",
+											"    ",
+											"pm.test(\"Channel is created\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(json_response.channel.is_channel).to.eql(true);",
+											"    ",
+											"});  ",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.create?token={{token}}&name={{name_of_channel}}&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"create"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "name",
+											"value": "{{name_of_channel}}"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Checking if name given is same after response is coming",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "c523c833-814f-4882-8fa4-24430f7dfb41",
+										"exec": [
+											"var random_number = _.random(1, 100);",
+											"",
+											"var name_of_channel = \"testing\"+random_number;",
+											"",
+											"",
+											"pm.environment.set(\"name_of_channel\", name_of_channel);",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "44dae694-6442-4b5b-bac5-c75cce550043",
+										"exec": [
+											"var json_response = JSON.parse(responseBody); ",
+											"",
+											"var env_name =pm.environment.get(\"name_of_channel\"); ",
+											"",
+											"pm.test(\"Name is same\", function ()",
+											"{",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(json_response.channel.name).to.eql(env_name);",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.create?token={{token}}&name={{name_of_channel}}&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"create"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "name",
+											"value": "{{name_of_channel}}"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Giving invalid name",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "c523c833-814f-4882-8fa4-24430f7dfb41",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "44dae694-6442-4b5b-bac5-c75cce550043",
+										"exec": [
+											"pm.test(\"Inavlid name\", function () {",
+											"    pm.expect(pm.response.text()).to.include(\"invalid_name_specials\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.create?token={{token}}&name=Invaild_name&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"create"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "name",
+											"value": "Invaild_name"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Checking for duplicate name Copy",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "c523c833-814f-4882-8fa4-24430f7dfb41",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "44dae694-6442-4b5b-bac5-c75cce550043",
+										"exec": [
+											"pm.test(\"Duplicate Name\", function () {",
+											"    pm.expect(pm.response.text()).to.include(\"name_taken\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.create?token={{token}}&name={{name_of_channel}}&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"create"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "name",
+											"value": "{{name_of_channel}}"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Invalid user",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "c523c833-814f-4882-8fa4-24430f7dfb41",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "44dae694-6442-4b5b-bac5-c75cce550043",
+										"exec": [
+											"pm.test(\"Not a valid user\", function () {",
+											"    pm.expect(pm.response.text()).to.include(\"invalid_auth\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.create?token=abcdefhj&name={{name_of_channel}}&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"create"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "abcdefhj"
+										},
+										{
+											"key": "name",
+											"value": "{{name_of_channel}}"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Join Newly Created Channel",
+					"item": [
+						{
+							"name": "Getting status code as 200",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f0c82fb7-2fd5-470f-8afa-b1c98b9260ea",
+										"exec": [
+											"pm.test(\"Getting Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.join?token={{token}}&channel={{response_channel_id}}&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"join"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "channel",
+											"value": "{{response_channel_id}}"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Invalid User",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f0c82fb7-2fd5-470f-8afa-b1c98b9260ea",
+										"exec": [
+											"pm.test(\"Not a valid user\", function () {",
+											"    pm.expect(pm.response.text()).to.include(\"invalid_auth\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.join?token=abcdef&channel={{response_channel_id}}&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"join"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "abcdef"
+										},
+										{
+											"key": "channel",
+											"value": "{{response_channel_id}}"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Channel not found",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f0c82fb7-2fd5-470f-8afa-b1c98b9260ea",
+										"exec": [
+											"pm.test(\"No channel exists like this\", function () {",
+											"    pm.expect(pm.response.text()).to.include(\"channel_not_found\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.join?token={{token}}&channel=random&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"join"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "channel",
+											"value": "random"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Joining same channel again",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f0c82fb7-2fd5-470f-8afa-b1c98b9260ea",
+										"exec": [
+											"pm.test(\"You are part of this channel\", function () {",
+											"    pm.expect(pm.response.text()).to.include(\"already_in_channel\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.join?token={{token}}&channel={{response_channel_id}}&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"join"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "channel",
+											"value": "{{response_channel_id}}"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Joining archieve type",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f0c82fb7-2fd5-470f-8afa-b1c98b9260ea",
+										"exec": [
+											"pm.test(\"Cannot join archieve channel type\", function () {",
+											"    pm.expect(pm.response.text()).to.include(\"method_not_supported_for_channel_type\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.join?token={{token}}&channel={{archive_channel_id}}&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"join"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "channel",
+											"value": "{{archive_channel_id}}"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Rename the channel",
+					"item": [
+						{
+							"name": "Checking if name is Successfully updated",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "c9f89839-a784-4c85-88c4-913194ebe94e",
+										"exec": [
+											"var random_number = _.random(1, 100);",
+											"",
+											"var change_name = \"changechannelname\"+random_number;",
+											"",
+											"",
+											"pm.environment.set(\"change_name\", change_name);"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "53eceb7d-6117-4931-873a-591b3774181a",
+										"exec": [
+											"//Checking name is changed or not",
+											"",
+											"var json_response = JSON.parse(responseBody); ",
+											"",
+											"var requesting_name = pm.environment.get(\"change_name\"); ",
+											"",
+											"var response_name = json_response.channel.name;",
+											"",
+											"",
+											"",
+											"pm.test(\"Renamed Successfully to:  \"+ response_name , function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(requesting_name).to.eql(response_name);",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.rename?token={{token}}&channel={{response_channel_id}}&name={{change_name}}&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"rename"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "channel",
+											"value": "{{response_channel_id}}"
+										},
+										{
+											"key": "name",
+											"value": "{{change_name}}"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Rename to null",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "c9f89839-a784-4c85-88c4-913194ebe94e",
+										"exec": [
+											"var random_number = _.random(1, 100);",
+											"",
+											"var change_name = \"changechannelname\"+random_number;",
+											"",
+											"",
+											"pm.environment.set(\"change_name\", change_name);"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "53eceb7d-6117-4931-873a-591b3774181a",
+										"exec": [
+											"var json_response = JSON.parse(responseBody); ",
+											"",
+											"pm.test(\"Name cannot be null\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(json_response.error).to.eql(\"invalid_name_required\");",
+											"});",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.rename?token={{token}}&channel={{response_channel_id}}&name=&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"rename"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "channel",
+											"value": "{{response_channel_id}}"
+										},
+										{
+											"key": "name",
+											"value": ""
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Name already taken",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "c9f89839-a784-4c85-88c4-913194ebe94e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "53eceb7d-6117-4931-873a-591b3774181a",
+										"exec": [
+											"var json_response = JSON.parse(responseBody); ",
+											"",
+											"pm.test(\"Name cannot be null\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(json_response.error).to.eql(\"name_taken\");",
+											"});",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.rename?token={{token}}&channel={{response_channel_id}}&name=abcde_01&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"rename"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "channel",
+											"value": "{{response_channel_id}}"
+										},
+										{
+											"key": "name",
+											"value": "abcde_01"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Name too long",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "c9f89839-a784-4c85-88c4-913194ebe94e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "53eceb7d-6117-4931-873a-591b3774181a",
+										"exec": [
+											"var json_response = JSON.parse(responseBody); ",
+											"",
+											"pm.test(\"Name cannot be null\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(json_response.error).to.eql(\"invalid_name_maxlength\");",
+											"});",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.rename?token={{token}}&channel={{response_channel_id}}&name=abcde00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"rename"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "channel",
+											"value": "{{response_channel_id}}"
+										},
+										{
+											"key": "name",
+											"value": "abcde00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Renaming archiving channel",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "c9f89839-a784-4c85-88c4-913194ebe94e",
+										"exec": [
+											"var random_number = _.random(1, 100);",
+											"",
+											"var change_name = \"changechannelname\"+random_number;",
+											"",
+											"",
+											"pm.environment.set(\"change_name\", change_name);"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "53eceb7d-6117-4931-873a-591b3774181a",
+										"exec": [
+											"var json_response = JSON.parse(responseBody); ",
+											"",
+											"pm.test(\"Archive channel name is changed \", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(json_response.channel.is_archived).to.eql(true);",
+											"});",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.rename?token={{token}}&channel={{archive_channel_id}}&name={{change_name}}&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"rename"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "channel",
+											"value": "{{archive_channel_id}}"
+										},
+										{
+											"key": "name",
+											"value": "{{change_name}}"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "List all Channels",
+					"item": [
+						{
+							"name": "List all Channels",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "9ac94197-362c-408d-b628-ecc384f7d6f8",
+										"exec": [
+											"var json_response = JSON.parse(responseBody); ",
+											"",
+											"var len = json_response.channels.length;",
+											"",
+											"pm.test(\"Number of Non-archived channels are \"+ len); "
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{env}}channels.list?token={{token}}",
+									"host": [
+										"{{env}}channels",
+										"list"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Archive the channel",
+					"item": [
+						{
+							"name": "Create a new private channnel",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "c523c833-814f-4882-8fa4-24430f7dfb41",
+										"exec": [
+											"var random_number = _.random(1, 100);",
+											"",
+											"var private_channel_name = \"archiving\"+random_number;",
+											"",
+											"pm.environment.set(\"private_name_for_archiving\", private_channel_name);"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "44dae694-6442-4b5b-bac5-c75cce550043",
+										"exec": [
+											"var json_response = JSON.parse(responseBody);",
+											"",
+											"pm.environment.set(\"id_private_channel\", json_response.channel.id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.create?token={{token}}&name={{private_name_for_archiving}}&is_private=1&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"create"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "name",
+											"value": "{{private_name_for_archiving}}"
+										},
+										{
+											"key": "is_private",
+											"value": "1"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Archive the Private Channel",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "1daff731-a947-48f3-a182-202d9286a344",
+										"exec": [
+											"pm.test(\"Private Channel Archived Successfully\");",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.archive?token={{token}}&channel={{id_private_channel}}&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"archive"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "channel",
+											"value": "{{id_private_channel}}"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Archive the General Channel",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "7bd6d01b-fabb-4e2f-87da-0b059c9e6ee4",
+										"exec": [
+											"pm.test(\"General Channel Archived successfully\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.archive?token={{token}}&channel={{response_channel_id}}&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"archive"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "channel",
+											"value": "{{response_channel_id}}"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Archive the null channel",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "7bd6d01b-fabb-4e2f-87da-0b059c9e6ee4",
+										"exec": [
+											"",
+											"",
+											"var json_response = JSON.parse(responseBody); ",
+											"",
+											"pm.test(\"Channel id cannot be null\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(json_response.error).to.eql(\"channel_not_found\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.archive?token={{token}}&channel=&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"archive"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "channel",
+											"value": ""
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Archive the invalid channel id",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "7bd6d01b-fabb-4e2f-87da-0b059c9e6ee4",
+										"exec": [
+											"",
+											"",
+											"var json_response = JSON.parse(responseBody); ",
+											"",
+											"pm.test(\"Channel id cannot be null\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(json_response.error).to.eql(\"channel_not_found\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.archive?token={{token}}&channel=IOKJMNHYUIIHGDRIYEDGJITR&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"archive"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "channel",
+											"value": "IOKJMNHYUIIHGDRIYEDGJITR"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Verify the already archived channel",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "1daff731-a947-48f3-a182-202d9286a344",
+										"exec": [
+											"",
+											"var json_response = JSON.parse(responseBody);",
+											"",
+											"pm.test(\"Channel is already archived\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(json_response.error).to.eql(\"already_archived\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{env}}conversations.archive?token={{token}}&channel={{id_private_channel}}&pretty=1",
+									"host": [
+										"{{env}}conversations",
+										"archive"
+									],
+									"query": [
+										{
+											"key": "token",
+											"value": "{{token}}"
+										},
+										{
+											"key": "channel",
+											"value": "{{id_private_channel}}"
+										},
+										{
+											"key": "pretty",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				}
+			],
+			"description": "In this folder,just checking the flow by creating and getting the data from APIs",
+			"protocolProfileBehavior": {}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
